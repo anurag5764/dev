@@ -7,7 +7,7 @@ export default function Home() {
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-lg">
       <h1 className="text-4xl font-bold text-ink mb-sm">BugBuddy</h1>
       {session?.user ? (
-        <p>Signed in as {session.user.name ?? "User"}</p>
+        <p>Signed in as {session.user?.name ?? "User"}</p>
       ) : (
         <Link
           href="/api/auth/signin"
