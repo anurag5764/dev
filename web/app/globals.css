@@ -1,0 +1,19 @@
+@import "tailwindcss/preflight";
+@tailwind utilities;
+@theme inline {
+  --color-brand-yellow: #FBBF24;
+  --color-ink: #14171A;
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-300: #D1D5DB;
+  --color-sky-500: #0EA5E9;
+  --color-rose-500: #F43F5E;
+  --color-emerald-500: #10B981;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 40px;
+  --font-sans: "Inter", ui-sans-serif, system-ui;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular;
+}
