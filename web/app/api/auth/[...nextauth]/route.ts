@@ -5,7 +5,7 @@ if (!process.env.GITHUB_ID || !process.env.GITHUB_SECRET) {
   throw new Error('Missing GITHUB_ID or GITHUB_SECRET environment variables');
 }
 
-export const { handlers: { GET, POST } } = NextAuth({
+const handler = NextAuth({
   providers: [
     GitHub({
       clientId: process.env.GITHUB_ID,
@@ -13,3 +13,5 @@ export const { handlers: { GET, POST } } = NextAuth({
     }),
   ],
 });
+
+export { handler as GET, handler as POST };
