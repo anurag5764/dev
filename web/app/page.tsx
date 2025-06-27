@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Logo from "./components/Logo";
 
 export default function Home() {
@@ -11,12 +12,12 @@ export default function Home() {
         BugBuddy drops a peer coder into a Zoom call to fix your bug—free,
         friendly, fast.
       </p>
-      <a
+      <Link
         href="/api/auth/signin"
         className="inline-block bg-brand-yellow text-ink font-medium rounded-md px-md py-sm shadow hover:-translate-y-px transition-transform"
       >
         Sign in
-      </a>
+      </Link>
     </main>
   );
 }
