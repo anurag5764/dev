@@ -1,24 +1,26 @@
 "use client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Logo from "./components/Logo";
+
 export default function Home() {
-  const { data: session } = useSession();
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-lg">
-      <h1 className="text-4xl font-bold text-ink mb-sm">BugBuddy</h1>
-      {session?.user ? (
-        <p>Signed in as {session.user?.name ?? "User"}</p>
-      ) : (
-        <Link
-          href="/api/auth/signin"
-          className="mt-sm bg-sky-500 text-white font-medium rounded-md px-md py-sm shadow hover:-translate-y-px transition-transform"
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-lg py-xl">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-xl md:p-xl flex flex-col items-center">
+        <Logo className="mb-xl text-4xl" />
+        <h1 className="text-5xl md:text-6xl font-extrabold text-ink mb-lg text-center tracking-tight leading-tight">
+          Get unstuck in minutes
+        </h1>
+        <p className="text-gray-700 text-xl md:text-2xl mb-xl text-center max-w-2xl mx-auto leading-relaxed px-4 md:px-6">
+  BugBuddy drops a peer coder into a Zoom call to fix your bug—free, friendly, fast.
+</p>
+        <a
+          href="/request"
+          className="inline-block bg-brand-yellow text-ink font-bold rounded-2xl px-lg py-md shadow-lg hover:bg-yellow-400 hover:shadow-xl transition-all duration-200 text-xl"
         >
-          Sign in with GitHub
-        </Link>
-      )}
-      <button className="bg-brand-yellow text-ink font-medium rounded-md px-md py-sm shadow hover:-translate-y-px transition-transform">
-        Get Started
-      </button>
+          Get help now
+        </a>
+      </div>
     </main>
   );
 }
