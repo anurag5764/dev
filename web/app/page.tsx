@@ -1,6 +1,4 @@
 "use client";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
 import Logo from "./components/Logo";
 
 export default function Home() {
@@ -12,8 +10,8 @@ export default function Home() {
           Get unstuck in minutes
         </h1>
         <p className="text-gray-700 text-xl md:text-2xl mb-xl text-center max-w-2xl mx-auto leading-relaxed px-4 md:px-6">
-  BugBuddy drops a peer coder into a Zoom call to fix your bug—free, friendly, fast.
-</p>
+          BugBuddy drops a peer coder into a Zoom call to fix your bug—free, friendly, fast.
+        </p>
         <a
           href="/request"
           className="inline-block bg-brand-yellow text-ink font-bold rounded-2xl px-lg py-md shadow-lg hover:bg-yellow-400 hover:shadow-xl transition-all duration-200 text-xl"

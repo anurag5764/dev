@@ -9,7 +9,7 @@ export default function Join() {
     const t=setInterval(()=>setSec(s=>s-1),1000);
     if(sec===0){window.location.href=url;}
     return ()=>clearInterval(t);
-  },[sec]);
+  },[sec, url]);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-lg py-xl">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-xl md:p-xl flex flex-col items-center">

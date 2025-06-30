@@ -3,7 +3,7 @@ import { useState } from "react";
 export default function Request() {
   const [title,setTitle]=useState('');
   const [desc,setDesc]=useState('');
-  const handleSubmit= async(e:any)=>{
+  const handleSubmit= async(e: React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault();
     const r = await fetch("/api/request",{method:"POST",
       headers:{"Content-Type":"application/json"},
