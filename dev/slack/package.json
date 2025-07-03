@@ -1,0 +1,1 @@
+{"name":"bugbuddy-slack","version":"1.0.0","main":"app.js","scripts":{"start":"node app.js"},"dependencies":{"@slack/bolt":"^3.16.0","dotenv":"^17.0.1","express":"^5.1.0"},"packageManager":"pnpm@9.12.2"}
