@@ -1,47 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
+import { cookies } from 'next/headers';
 
 dotenv.config({ path: ['.env', '.env.local'] });
 
-// Retrieve code verifier by state
-function getCodeVerifier(state: string): string | null {
+// Retrieve code verifier from cookies by state
+async function getCodeVerifierFromCookie(state: string): Promise<string | null> {
     try {
-        const tempDir = path.join(process.cwd(), '.temp');
-        const verifierPath = path.join(tempDir, 'oauth-verifier.json');
+        const cookieStore = await cookies();
+        const oauthCookie = cookieStore.get('twitter_oauth');
 
-        if (!fs.existsSync(verifierPath)) {
-            console.log('❌ No temporary verifier file found');
+        if (!oauthCookie) {
+            console.log('❌ No OAuth cookie found');
             return null;
         }
 
-        const verifierData = JSON.parse(fs.readFileSync(verifierPath, 'utf8'));
+        const cookieData = JSON.parse(oauthCookie.value);
 
         // Check if state matches and verifier is not too old (5 minutes)
-        if (verifierData.state === state && (Date.now() - verifierData.timestamp) < 5 * 60 * 1000) {
-            console.log('✅ Code verifier retrieved automatically');
-            return verifierData.codeVerifier;
+        if (cookieData.state === state && (Date.now() - cookieData.timestamp) < 5 * 60 * 1000) {
+            console.log('✅ Code verifier retrieved from cookie');
+            return cookieData.codeVerifier;
         }
 
         console.log('❌ Code verifier expired or state mismatch');
         return null;
     } catch (error) {
-        console.error('Error reading code verifier:', error);
+        console.error('Error reading code verifier from cookie:', error);
         return null;
     }
 }
 
-// Clean up temporary files
-function cleanupTempFiles() {
+// Clear the OAuth cookie after use
+async function clearOAuthCookie() {
     try {
-        const tempDir = path.join(process.cwd(), '.temp');
-        if (fs.existsSync(tempDir)) {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-            console.log('🧹 Temporary files cleaned up');
-        }
+        const cookieStore = await cookies();
+        cookieStore.delete('twitter_oauth');
+        console.log('🧹 OAuth cookie cleared');
     } catch (error) {
-        console.error('Error cleaning up temp files:', error);
+        console.error('Error clearing OAuth cookie:', error);
     }
 }
 
@@ -66,10 +63,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'No state provided' }, { status: 400 });
     }
 
-    // Try to get code verifier automatically first
-    let codeVerifier = getCodeVerifier(state);
+    // Try to get code verifier from cookie first
+    let codeVerifier = await getCodeVerifierFromCookie(state);
 
-    // Fallback to manual code verifier if automatic retrieval fails
+    // Fallback to manual code verifier if cookie retrieval fails
     if (!codeVerifier && manualCodeVerifier) {
         console.log('📝 Using manual code verifier as fallback');
         codeVerifier = manualCodeVerifier;
@@ -124,8 +121,8 @@ export async function GET(request: NextRequest) {
 
         console.log('✅ Access Token obtained successfully');
 
-        // Clean up temporary files after successful token exchange
-        cleanupTempFiles();
+        // Clear the OAuth cookie after successful token exchange
+        await clearOAuthCookie();
 
         return NextResponse.json({
             success: true,

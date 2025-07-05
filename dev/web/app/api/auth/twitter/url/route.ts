@@ -22,7 +22,7 @@ export async function GET() {
             name: 'twitter_oauth',
             value: cookieValue,
             httpOnly: true,
-            secure: true,
+            secure: false, // Set to false for localhost testing
             sameSite: 'lax',
             maxAge: 300, // 5 minutes
             path: '/',
