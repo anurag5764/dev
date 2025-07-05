@@ -80,9 +80,9 @@ export default function TestOAuth() {
                             <ol className="text-sm text-yellow-700 mt-2 space-y-1">
                                 <li>1. Click the authorization URL above</li>
                                 <li>2. Complete the X authorization</li>
-                                <li>3. You'll be automatically redirected back</li>
+                                <li>3. You&apos;ll be automatically redirected back</li>
                                 <li>4. The code verifier is retrieved from cookies automatically</li>
-                                <li>5. You'll get your access token without manual steps!</li>
+                                <li>5. You&apos;ll get your access token without manual steps!</li>
                             </ol>
                         </div>
                     </div>
