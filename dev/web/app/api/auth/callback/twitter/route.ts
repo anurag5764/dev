@@ -7,7 +7,6 @@ dotenv.config({ path: ['.env', '.env.local'] });
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
-    const state = searchParams.get('state');
 
     if (!code) {
         console.error('No authorization code provided');

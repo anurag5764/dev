@@ -4,6 +4,16 @@ import crypto from 'crypto';
 
 dotenv.config({ path: ['.env', '.env.local'] });
 
+// Validate required environment variables
+function validateEnv() {
+  const required = ['X_CLIENT_ID', 'X_CLIENT_SECRET'];
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+}
+
 // Generate PKCE challenge
 function generateCodeVerifier() {
   return crypto.randomBytes(32).toString('base64url');
@@ -15,6 +25,9 @@ function generateCodeChallenge(verifier) {
 
 export async function getAccessToken() {
   try {
+    // Validate environment variables
+    validateEnv();
+    
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = generateCodeChallenge(codeVerifier);
     
@@ -35,10 +48,12 @@ export async function getAccessToken() {
     
     return { authLink, codeVerifier };
   } catch (error) {
-    console.error('❌ OAuth Error:', error);
+    console.error('❌ OAuth Error:', error.message);
     throw error;
   }
 }
 
 // Test the OAuth flow
-getAccessToken().catch(console.error); 
+if (import.meta.url === `file://${process.argv[1]}`) {
+  getAccessToken().catch(console.error);
+} 
