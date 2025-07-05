@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         // Exchange code for access token
         const { accessToken, refreshToken, expiresIn } = await client.loginWithOAuth2({
             code,
-            codeVerifier: 'challenge', // You should store this from the initial auth request
+            codeVerifier: 'Hwp4l87Br-Rvf4zJvdspeKt56P_vMik7BVwwtE4jPCI', // Use the actual code verifier from the OAuth test
             redirectUri: 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
         });
 
