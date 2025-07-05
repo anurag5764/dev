@@ -6,21 +6,36 @@ export default function TestOAuth() {
     const [authUrl, setAuthUrl] = useState('');
     const [codeVerifier, setCodeVerifier] = useState('');
     const [result, setResult] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const generateOAuthUrl = async () => {
+        setLoading(true);
+        setResult('Generating OAuth URL...');
+        
         try {
+            console.log('Fetching OAuth URL...');
             const response = await fetch('/api/auth/twitter');
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
+            console.log('Response data:', data);
             
             if (data.success) {
                 setAuthUrl(data.authUrl);
                 setCodeVerifier(data.codeVerifier);
                 setResult('OAuth URL generated successfully!');
             } else {
-                setResult(`Error: ${data.error}`);
+                setResult(`Error: ${data.error || 'Unknown error'}`);
             }
         } catch (error) {
-            setResult(`Error: ${error}`);
+            console.error('Error generating OAuth URL:', error);
+            setResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -38,7 +53,7 @@ export default function TestOAuth() {
             const data = await response.json();
             setResult(JSON.stringify(data, null, 2));
         } catch (error) {
-            setResult(`Error: ${error}`);
+            setResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
@@ -49,9 +64,10 @@ export default function TestOAuth() {
             <div className="space-y-4">
                 <button 
                     onClick={generateOAuthUrl}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    disabled={loading}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
                 >
-                    Generate OAuth URL
+                    {loading ? 'Generating...' : 'Generate OAuth URL'}
                 </button>
 
                 {authUrl && (
