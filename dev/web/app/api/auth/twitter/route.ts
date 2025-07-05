@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { TwitterApi } from 'twitter-api-v2';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 
@@ -9,26 +8,31 @@ export async function GET() {
     try {
         // Generate PKCE challenge
         const codeVerifier = crypto.randomBytes(32).toString('base64url');
+        const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
 
-        const client = new TwitterApi({
-            clientId: process.env.X_CLIENT_ID!,
-            clientSecret: process.env.X_CLIENT_SECRET!,
+        // Generate state
+        const state = crypto.randomBytes(16).toString('base64url');
+
+        // Build OAuth URL manually
+        const params = new URLSearchParams({
+            response_type: 'code',
+            client_id: process.env.X_CLIENT_ID!,
+            redirect_uri: 'http://localhost:3000/api/auth/callback/twitter',
+            state: state,
+            code_challenge: codeChallenge,
+            code_challenge_method: 'S256',
+            scope: 'tweet.read tweet.write users.read'
         });
 
-        const authLink = await client.generateOAuth2AuthLink(
-            'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
-            { scope: ['tweet.read', 'tweet.write', 'users.read'] }
-        );
+        const authUrl = `https://x.com/i/oauth2/authorize?${params.toString()}`;
 
-        // Store the code verifier in a cookie for the callback to use
-        const response = NextResponse.json({
+        return NextResponse.json({
             success: true,
-            authUrl: authLink.url,
-            codeVerifier,
-            state: authLink.state
+            authUrl: authUrl,
+            codeVerifier: codeVerifier,
+            state: state,
+            message: 'OAuth URL generated successfully'
         });
-
-        return response;
     } catch (error) {
         console.error('❌ OAuth Init Error:', error);
         return NextResponse.json({
