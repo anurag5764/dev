@@ -4,11 +4,11 @@ import { useSearchParams } from 'next/navigation';
 
 function JoinContent() {
   const params = useSearchParams();
-  const url = params.get('u')!;
+  const url = params?.get('u') || '';
   const [sec,setSec]=useState(3);
   useEffect(()=>{
     const t=setInterval(()=>setSec(s=>s-1),1000);
-    if(sec===0){window.location.href=url;}
+    if(sec===0 && url){window.location.href=url;}
     return ()=>clearInterval(t);
   },[sec, url]);
   return (
