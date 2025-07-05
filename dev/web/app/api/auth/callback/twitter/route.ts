@@ -31,10 +31,17 @@ export async function GET(request: NextRequest) {
         console.log('🔄 Attempting to exchange code for access token...');
         console.log('📝 Using code verifier:', codeVerifier);
 
-        // Use only the correct Vercel redirect URI
-        const redirectUri = 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter';
+        // Dynamically determine the correct redirect URI
+        const host = request.headers.get('host');
+        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        const isLocalhost = host?.includes('localhost') || host?.includes('127.0.0.1');
+
+        const redirectUri = isLocalhost
+            ? `${protocol}://${host}/api/auth/callback/twitter`
+            : 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter';
 
         console.log(`🔄 Using redirect URI: ${redirectUri}`);
+        console.log(`🔄 Host: ${host}, Protocol: ${protocol}, Is Localhost: ${isLocalhost}`);
 
         const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
             method: 'POST',
