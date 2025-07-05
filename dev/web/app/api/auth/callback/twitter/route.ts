@@ -7,20 +7,29 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    const codeVerifier = searchParams.get('code_verifier') || 'ylMVmb-Uw6ro_3iopGQ9zER4984TK11csZsLlHanul8';
+    const codeVerifier = searchParams.get('code_verifier');
 
     console.log('🔍 OAuth Callback Debug Info:');
     console.log('📝 Code:', code);
     console.log('🔗 State:', state);
-    console.log('🔑 Code Verifier:', codeVerifier);
+    console.log('🔑 Code Verifier from URL:', codeVerifier);
 
     if (!code) {
         console.error('No authorization code provided');
         return NextResponse.json({ error: 'No code provided' }, { status: 400 });
     }
 
+    if (!codeVerifier) {
+        console.error('No code verifier provided');
+        return NextResponse.json({
+            error: 'No code verifier provided',
+            message: 'Please include the code_verifier parameter in the callback URL'
+        }, { status: 400 });
+    }
+
     try {
         console.log('🔄 Attempting to exchange code for access token...');
+        console.log('📝 Using code verifier:', codeVerifier);
 
         // Manual OAuth token exchange using fetch
         const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
@@ -65,6 +74,7 @@ export async function GET(request: NextRequest) {
             debug: {
                 hasCode: !!code,
                 hasState: !!state,
+                hasCodeVerifier: !!codeVerifier,
                 hasClientId: !!process.env.X_CLIENT_ID,
                 hasClientSecret: !!process.env.X_CLIENT_SECRET,
                 codeLength: code?.length || 0,
