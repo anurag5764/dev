@@ -26,22 +26,13 @@ export async function GET() {
 
         const authUrl = `https://x.com/i/oauth2/authorize?${params.toString()}`;
 
-        // Create response with the OAuth URL and store code verifier in session storage
-        const response = NextResponse.json({
+        return NextResponse.json({
             success: true,
             authUrl: authUrl,
-            codeVerifier: codeVerifier, // Include in response for client-side storage
+            codeVerifier: codeVerifier,
             state: state,
             message: 'OAuth URL generated successfully'
         });
-
-        console.log('🔑 OAuth Init:', {
-            codeVerifier: codeVerifier ? 'Present' : 'Missing',
-            state: state ? 'Present' : 'Missing',
-            authUrl: authUrl.substring(0, 50) + '...'
-        });
-
-        return response;
     } catch (error) {
         console.error('❌ OAuth Init Error:', error);
         return NextResponse.json({
