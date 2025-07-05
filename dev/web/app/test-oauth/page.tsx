@@ -74,11 +74,21 @@ export default function TestOAuth() {
             return;
         }
 
-        // Create the authorization URL with code verifier and state as parameters
-        const authUrlWithParams = `${authUrl}&code_verifier=${codeVerifier}&state=${state}`;
+        // Create a custom redirect URL that points to our callback page
+        const baseUrl = window.location.origin;
+        const customRedirectUrl = `${baseUrl}/oauth-callback`;
+        
+        // Create the authorization URL with our custom redirect
+        const authUrlWithCustomRedirect = authUrl.replace(
+            'redirect_uri=https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
+            `redirect_uri=${encodeURIComponent(customRedirectUrl)}`
+        );
+        
+        console.log('🔗 Custom redirect URL:', customRedirectUrl);
+        console.log('🔗 Auth URL with custom redirect:', authUrlWithCustomRedirect);
         
         // Open the authorization URL
-        window.open(authUrlWithParams, '_blank');
+        window.open(authUrlWithCustomRedirect, '_blank');
         
         setResult('🔄 Authorization window opened. Complete the authorization and then check the status.');
     };
@@ -133,9 +143,9 @@ export default function TestOAuth() {
                             <ol className="text-sm text-yellow-700 mt-2 space-y-1">
                                 <li>1. Click "Start Authorization" above</li>
                                 <li>2. Complete the X authorization in the new window</li>
-                                <li>3. You&apos;ll be redirected back automatically</li>
-                                <li>4. The code verifier is included in the URL automatically</li>
-                                <li>5. Click "Check Auth Status" to get your access token!</li>
+                                <li>3. You&apos;ll be redirected to our callback page</li>
+                                <li>4. The callback page will automatically get your access token</li>
+                                <li>5. You&apos;ll see your access token on the callback page!</li>
                             </ol>
                         </div>
                     </div>

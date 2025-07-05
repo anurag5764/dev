@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const codeVerifier = searchParams.get('code_verifier');
 
-    console.log('🔍 OAuth Callback Debug Info:');
+    console.log('🔍 OAuth Callback Debug Info (GET):');
     console.log('📝 Code:', code);
     console.log('🔗 State:', state);
     console.log('🔑 Code Verifier from URL:', codeVerifier ? 'Present' : 'Missing');
@@ -27,6 +27,43 @@ export async function GET(request: NextRequest) {
         }, { status: 400 });
     }
 
+    return await exchangeCodeForToken(code, codeVerifier);
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { code, state, code_verifier } = body;
+
+        console.log('🔍 OAuth Callback Debug Info (POST):');
+        console.log('📝 Code:', code);
+        console.log('🔗 State:', state);
+        console.log('🔑 Code Verifier from body:', code_verifier ? 'Present' : 'Missing');
+
+        if (!code) {
+            console.error('No authorization code provided');
+            return NextResponse.json({ error: 'No code provided' }, { status: 400 });
+        }
+
+        if (!code_verifier) {
+            console.error('No code verifier provided');
+            return NextResponse.json({
+                error: 'No code verifier provided',
+                message: 'Please include the code_verifier in the request body'
+            }, { status: 400 });
+        }
+
+        return await exchangeCodeForToken(code, code_verifier);
+    } catch (error) {
+        console.error('❌ POST request error:', error);
+        return NextResponse.json({
+            error: 'Invalid request body',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        }, { status: 400 });
+    }
+}
+
+async function exchangeCodeForToken(code: string, codeVerifier: string) {
     try {
         console.log('🔄 Attempting to exchange code for access token...');
         console.log('📝 Using code verifier:', codeVerifier);
@@ -77,12 +114,10 @@ export async function GET(request: NextRequest) {
             details: error instanceof Error ? error.message : 'Unknown error',
             debug: {
                 hasCode: !!code,
-                hasState: !!state,
                 hasCodeVerifier: !!codeVerifier,
                 hasClientId: !!process.env.X_CLIENT_ID,
                 hasClientSecret: !!process.env.X_CLIENT_SECRET,
                 codeLength: code?.length || 0,
-                stateLength: state?.length || 0,
                 codeVerifierLength: codeVerifier?.length || 0
             }
         }, { status: 500 });
