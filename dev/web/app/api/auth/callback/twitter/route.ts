@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         const { accessToken, refreshToken, expiresIn } = await client.loginWithOAuth2({
             code,
             codeVerifier: 'challenge', // You should store this from the initial auth request
-            redirectUri: 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
+            redirectUri: 'https://dev-git-master-anurag5764s-projects.vercel.app/api/auth/callback/twitter',
         });
 
         console.log('✅ Access Token obtained successfully:', accessToken);
