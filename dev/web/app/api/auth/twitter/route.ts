@@ -17,7 +17,7 @@ export async function GET() {
         const params = new URLSearchParams({
             response_type: 'code',
             client_id: process.env.X_CLIENT_ID!,
-            redirect_uri: 'http://localhost:3000/api/auth/callback/twitter',
+            redirect_uri: 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
             state: state,
             code_challenge: codeChallenge,
             code_challenge_method: 'S256',
