@@ -8,10 +8,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
+    const codeVerifier = searchParams.get('code_verifier') || 'sflTpUcKR1-mMIQj7ppEpHFtMwabRmKvRHwYcyCUGRo';
 
     console.log('🔍 OAuth Callback Debug Info:');
     console.log('📝 Code:', code);
     console.log('🔗 State:', state);
+    console.log('🔑 Code Verifier:', codeVerifier);
     console.log('🔑 Client ID:', process.env.X_CLIENT_ID ? 'Set' : 'Missing');
     console.log('🔐 Client Secret:', process.env.X_CLIENT_SECRET ? 'Set' : 'Missing');
 
@@ -28,15 +30,22 @@ export async function GET(request: NextRequest) {
         });
 
         console.log('🔄 Attempting to exchange code for access token...');
+        console.log('📝 Using code verifier:', codeVerifier);
+        console.log('🔗 Redirect URI: https://bugbuddy-dev.vercel.app/api/auth/callback/twitter');
 
         // Exchange code for access token
         const { accessToken, refreshToken, expiresIn } = await client.loginWithOAuth2({
             code,
-            codeVerifier: 'sflTpUcKR1-mMIQj7ppEpHFtMwabRmKvRHwYcyCUGRo', // Use the actual code verifier from the latest OAuth test
+            codeVerifier,
             redirectUri: 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
         });
 
-        console.log('✅ Access Token obtained successfully:', accessToken);
+        console.log('✅ Access Token obtained successfully');
+        console.log('🔄 Token Response:', {
+            accessToken: accessToken ? 'Present' : 'Missing',
+            refreshToken: refreshToken ? 'Present' : 'Missing',
+            expiresIn
+        });
 
         return NextResponse.json({
             success: true,
@@ -48,7 +57,6 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('❌ OAuth Error Details:', error);
         console.error('❌ Error Message:', error instanceof Error ? error.message : 'Unknown error');
-        console.error('❌ Error Stack:', error instanceof Error ? error.stack : 'No stack trace');
 
         return NextResponse.json({
             error: 'Authentication failed',
@@ -57,7 +65,10 @@ export async function GET(request: NextRequest) {
                 hasCode: !!code,
                 hasState: !!state,
                 hasClientId: !!process.env.X_CLIENT_ID,
-                hasClientSecret: !!process.env.X_CLIENT_SECRET
+                hasClientSecret: !!process.env.X_CLIENT_SECRET,
+                codeLength: code?.length || 0,
+                stateLength: state?.length || 0,
+                codeVerifierLength: codeVerifier?.length || 0
             }
         }, { status: 500 });
     }
