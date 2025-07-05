@@ -1,123 +1,44 @@
-require('dotenv').config();
-const { TwitterApi } = require('twitter-api-v2');
+import { TwitterApi } from 'twitter-api-v2';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
 
-// X API v2 OAuth Configuration
-const CLIENT_ID = process.env.X_CLIENT_ID;
-const CLIENT_SECRET = process.env.X_CLIENT_SECRET;
-const REDIRECT_URI = process.env.X_REDIRECT_URI || 'http://localhost:3000/api/auth/callback/twitter';
+dotenv.config({ path: ['.env', '.env.local'] });
 
-// Initialize Twitter API client
-const client = new TwitterApi({
-  clientId: CLIENT_ID,
-  clientSecret: CLIENT_SECRET,
-});
-
-/**
- * Generate OAuth 2.0 authorization URL
- * @returns {string} Authorization URL
- */
-async function generateAuthUrl() {
-  try {
-    const authUrl = await client.generateOAuth2AuthLink(
-      REDIRECT_URI,
-      { scope: ['tweet.read', 'tweet.write', 'users.read'] }
-    );
-    console.log('🔗 Authorization URL:', authUrl.url);
-    return authUrl.url;
-  } catch (error) {
-    console.error('❌ Error generating auth URL:', error.message);
-    throw error;
-  }
+// Generate PKCE challenge
+function generateCodeVerifier() {
+  return crypto.randomBytes(32).toString('base64url');
 }
 
-/**
- * Exchange authorization code for access token
- * @param {string} code - Authorization code from callback
- * @returns {Object} Access token and refresh token
- */
-async function getAccessToken(code) {
+function generateCodeChallenge(verifier) {
+  return crypto.createHash('sha256').update(verifier).digest('base64url');
+}
+
+export async function getAccessToken() {
   try {
-    const { client: loggedClient, accessToken, refreshToken } = await client.loginWithOAuth2({
-      code,
-      codeVerifier: 'challenge',
-      redirectUri: REDIRECT_URI,
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = generateCodeChallenge(codeVerifier);
+    
+    const client = new TwitterApi({
+      clientId: process.env.X_CLIENT_ID,
+      clientSecret: process.env.X_CLIENT_SECRET,
     });
 
-    console.log('✅ Access token obtained successfully!');
-    console.log('🔑 Access Token:', accessToken);
-    console.log('🔄 Refresh Token:', refreshToken);
-
-    return {
-      client: loggedClient,
-      accessToken,
-      refreshToken
-    };
+    const authLink = await client.generateOAuth2AuthLink(
+      'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
+      { scope: ['tweet.read', 'tweet.write', 'users.read'] },
+      { codeChallenge, codeChallengeMethod: 'S256' }
+    );
+    
+    console.log('✅ Authorize this app:', authLink.url);
+    console.log('📝 Code Verifier (save this):', codeVerifier);
+    console.log('🔗 State:', authLink.state);
+    
+    return { authLink, codeVerifier };
   } catch (error) {
-    console.error('❌ Error obtaining access token:', error.message);
+    console.error('❌ OAuth Error:', error);
     throw error;
   }
 }
 
-/**
- * Test the OAuth flow
- */
-async function testOAuthFlow() {
-  try {
-    console.log('🚀 Starting X API v2 OAuth flow...');
-    
-    // Check if environment variables are set
-    if (!CLIENT_ID || !CLIENT_SECRET) {
-      console.error('❌ Missing X API credentials. Please set X_CLIENT_ID and X_CLIENT_SECRET in .env file');
-      console.log('📝 Required environment variables:');
-      console.log('   X_CLIENT_ID=your_client_id');
-      console.log('   X_CLIENT_SECRET=your_client_secret');
-      console.log('   X_REDIRECT_URI=http://localhost:3000/api/auth/callback/twitter (optional)');
-      return;
-    }
-
-    // Generate authorization URL
-    const authUrl = await generateAuthUrl();
-    
-    console.log('\n📋 Next steps:');
-    console.log('1. Open the authorization URL in your browser');
-    console.log('2. Log in with your X credentials');
-    console.log('3. Authorize the application');
-    console.log('4. Copy the authorization code from the callback URL');
-    console.log('5. Use the code with getAccessToken(code) function');
-    
-    return authUrl;
-  } catch (error) {
-    console.error('❌ OAuth flow test failed:', error.message);
-  }
-}
-
-/**
- * Verify credentials and test API access
- * @param {string} accessToken - Access token to test
- */
-async function testApiAccess(accessToken) {
-  try {
-    const userClient = new TwitterApi(accessToken);
-    const me = await userClient.v2.me();
-    console.log('✅ API access verified!');
-    console.log('👤 User:', me.data);
-    return me.data;
-  } catch (error) {
-    console.error('❌ API access test failed:', error.message);
-    throw error;
-  }
-}
-
-// Export functions for use in other modules
-module.exports = {
-  generateAuthUrl,
-  getAccessToken,
-  testOAuthFlow,
-  testApiAccess,
-  client
-};
-
-// Run test if this file is executed directly
-if (require.main === module) {
-  testOAuthFlow();
-} 
+// Test the OAuth flow
+getAccessToken().catch(console.error); 
