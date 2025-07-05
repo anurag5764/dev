@@ -2,8 +2,13 @@
 
 import { useState } from 'react';
 
+interface OAuthData {
+  url: string;
+  state: string;
+}
+
 export default function TestOAuth() {
-  const [oauthData, setOauthData] = useState<any>(null);
+  const [oauthData, setOauthData] = useState<OAuthData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
