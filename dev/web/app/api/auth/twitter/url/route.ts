@@ -12,6 +12,7 @@ export async function GET() {
         const cookieValue = JSON.stringify({
             codeVerifier: authLink.codeVerifier,
             state: authLink.state,
+            timestamp: Date.now() // Add timestamp for validation
         });
 
         const response = NextResponse.json({
@@ -22,7 +23,7 @@ export async function GET() {
             name: 'twitter_oauth',
             value: cookieValue,
             httpOnly: true,
-            secure: false, // Set to false for localhost testing
+            secure: true, // Set to true for production (HTTPS)
             sameSite: 'lax',
             maxAge: 300, // 5 minutes
             path: '/',

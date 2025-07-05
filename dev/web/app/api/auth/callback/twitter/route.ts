@@ -10,12 +10,19 @@ async function getCodeVerifierFromCookie(state: string): Promise<string | null> 
         const cookieStore = await cookies();
         const oauthCookie = cookieStore.get('twitter_oauth');
 
+        console.log('🔍 Cookie Debug:');
+        console.log('📝 All cookies:', cookieStore.getAll());
+        console.log('📝 OAuth cookie found:', !!oauthCookie);
+
         if (!oauthCookie) {
             console.log('❌ No OAuth cookie found');
             return null;
         }
 
+        console.log('📝 OAuth cookie value:', oauthCookie.value);
+
         const cookieData = JSON.parse(oauthCookie.value);
+        console.log('📝 Parsed cookie data:', cookieData);
 
         // Check if state matches and verifier is not too old (5 minutes)
         if (cookieData.state === state && (Date.now() - cookieData.timestamp) < 5 * 60 * 1000) {
@@ -24,6 +31,9 @@ async function getCodeVerifierFromCookie(state: string): Promise<string | null> 
         }
 
         console.log('❌ Code verifier expired or state mismatch');
+        console.log('📝 Expected state:', state);
+        console.log('📝 Cookie state:', cookieData.state);
+        console.log('📝 Timestamp check:', (Date.now() - cookieData.timestamp) < 5 * 60 * 1000);
         return null;
     } catch (error) {
         console.error('Error reading code verifier from cookie:', error);

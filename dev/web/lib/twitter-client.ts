@@ -12,7 +12,7 @@ export async function generateOAuthUrl() {
     const client = await createTwitterClient();
 
     const authLink = await client.generateOAuth2AuthLink(
-        'http://localhost:3000/api/auth/callback/twitter',
+        'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
         {
             scope: ['tweet.read', 'tweet.write', 'users.read']
         }
