@@ -7,6 +7,13 @@ dotenv.config({ path: ['.env', '.env.local'] });
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
+    const state = searchParams.get('state');
+
+    console.log('🔍 OAuth Callback Debug Info:');
+    console.log('📝 Code:', code);
+    console.log('🔗 State:', state);
+    console.log('🔑 Client ID:', process.env.X_CLIENT_ID ? 'Set' : 'Missing');
+    console.log('🔐 Client Secret:', process.env.X_CLIENT_SECRET ? 'Set' : 'Missing');
 
     if (!code) {
         console.error('No authorization code provided');
@@ -20,10 +27,12 @@ export async function GET(request: NextRequest) {
             clientSecret: process.env.X_CLIENT_SECRET!,
         });
 
+        console.log('🔄 Attempting to exchange code for access token...');
+
         // Exchange code for access token
         const { accessToken, refreshToken, expiresIn } = await client.loginWithOAuth2({
             code,
-            codeVerifier: 'Hwp4l87Br-Rvf4zJvdspeKt56P_vMik7BVwwtE4jPCI', // Use the actual code verifier from the OAuth test
+            codeVerifier: 'sflTpUcKR1-mMIQj7ppEpHFtMwabRmKvRHwYcyCUGRo', // Use the actual code verifier from the latest OAuth test
             redirectUri: 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
         });
 
@@ -37,10 +46,19 @@ export async function GET(request: NextRequest) {
             message: 'X API authentication successful'
         });
     } catch (error) {
-        console.error('❌ OAuth Error:', error);
+        console.error('❌ OAuth Error Details:', error);
+        console.error('❌ Error Message:', error instanceof Error ? error.message : 'Unknown error');
+        console.error('❌ Error Stack:', error instanceof Error ? error.stack : 'No stack trace');
+
         return NextResponse.json({
             error: 'Authentication failed',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: error instanceof Error ? error.message : 'Unknown error',
+            debug: {
+                hasCode: !!code,
+                hasState: !!state,
+                hasClientId: !!process.env.X_CLIENT_ID,
+                hasClientSecret: !!process.env.X_CLIENT_SECRET
+            }
         }, { status: 500 });
     }
 } 
