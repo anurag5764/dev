@@ -7,12 +7,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    const codeVerifier = searchParams.get('code_verifier');
+
+    // Get code verifier and state from cookies
+    const codeVerifier = request.cookies.get('oauth_code_verifier')?.value;
+    const storedState = request.cookies.get('oauth_state')?.value;
 
     console.log('🔍 OAuth Callback Debug Info:');
     console.log('📝 Code:', code);
-    console.log('🔗 State:', state);
-    console.log('🔑 Code Verifier from URL:', codeVerifier);
+    console.log('🔗 State from URL:', state);
+    console.log('🔗 State from cookie:', storedState);
+    console.log('🔑 Code Verifier from cookie:', codeVerifier ? 'Present' : 'Missing');
 
     if (!code) {
         console.error('No authorization code provided');
@@ -20,16 +24,24 @@ export async function GET(request: NextRequest) {
     }
 
     if (!codeVerifier) {
-        console.error('No code verifier provided');
+        console.error('No code verifier found in cookies');
         return NextResponse.json({
-            error: 'No code verifier provided',
-            message: 'Please include the code_verifier parameter in the callback URL'
+            error: 'No code verifier found',
+            message: 'Please restart the OAuth flow'
+        }, { status: 400 });
+    }
+
+    if (!storedState || state !== storedState) {
+        console.error('State mismatch or missing');
+        return NextResponse.json({
+            error: 'Invalid state parameter',
+            message: 'Please restart the OAuth flow'
         }, { status: 400 });
     }
 
     try {
         console.log('🔄 Attempting to exchange code for access token...');
-        console.log('📝 Using code verifier:', codeVerifier);
+        console.log('📝 Using code verifier from cookies');
 
         // Use only the correct Vercel redirect URI
         const redirectUri = 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter';
@@ -61,13 +73,20 @@ export async function GET(request: NextRequest) {
 
         console.log('✅ Access Token obtained successfully');
 
-        return NextResponse.json({
+        // Create success response
+        const response = NextResponse.json({
             success: true,
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token,
             expiresIn: tokenData.expires_in,
             message: 'X API authentication successful'
         });
+
+        // Clear the OAuth cookies
+        response.cookies.set('oauth_code_verifier', '', { maxAge: 0 });
+        response.cookies.set('oauth_state', '', { maxAge: 0 });
+
+        return response;
     } catch (error) {
         console.error('❌ OAuth Error Details:', error);
         console.error('❌ Error Message:', error instanceof Error ? error.message : 'Unknown error');
@@ -79,6 +98,7 @@ export async function GET(request: NextRequest) {
                 hasCode: !!code,
                 hasState: !!state,
                 hasCodeVerifier: !!codeVerifier,
+                hasStoredState: !!storedState,
                 hasClientId: !!process.env.X_CLIENT_ID,
                 hasClientSecret: !!process.env.X_CLIENT_SECRET,
                 codeLength: code?.length || 0,

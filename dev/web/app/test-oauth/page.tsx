@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 export default function TestOAuth() {
     const [authUrl, setAuthUrl] = useState('');
-    const [codeVerifier, setCodeVerifier] = useState('');
     const [result, setResult] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -26,8 +25,7 @@ export default function TestOAuth() {
             
             if (data.success) {
                 setAuthUrl(data.authUrl);
-                setCodeVerifier(data.codeVerifier);
-                setResult('OAuth URL generated successfully!');
+                setResult('OAuth URL generated successfully! Click the authorization URL to start the automated flow.');
             } else {
                 setResult(`Error: ${data.error || 'Unknown error'}`);
             }
@@ -39,17 +37,9 @@ export default function TestOAuth() {
         }
     };
 
-    const testCallback = async () => {
-        if (!codeVerifier) {
-            setResult('Please generate OAuth URL first');
-            return;
-        }
-
-        // Simulate the callback with a test code
-        const testUrl = `/api/auth/callback/twitter?code=test_code&state=test_state&code_verifier=${codeVerifier}`;
-        
+    const checkAuthStatus = async () => {
         try {
-            const response = await fetch(testUrl);
+            const response = await fetch('/api/auth/callback/twitter');
             const data = await response.json();
             setResult(JSON.stringify(data, null, 2));
         } catch (error) {
@@ -59,7 +49,7 @@ export default function TestOAuth() {
 
     return (
         <div className="p-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">OAuth Test Page</h1>
+            <h1 className="text-3xl font-bold mb-6">Automated OAuth Test Page</h1>
             
             <div className="space-y-4">
                 <button 
@@ -73,6 +63,9 @@ export default function TestOAuth() {
                 {authUrl && (
                     <div className="border p-4 rounded">
                         <h3 className="font-bold mb-2">Authorization URL:</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Click this URL to start the automated OAuth flow. The code verifier is stored in cookies automatically.
+                        </p>
                         <a 
                             href={authUrl} 
                             target="_blank" 
@@ -82,18 +75,24 @@ export default function TestOAuth() {
                             {authUrl}
                         </a>
                         
-                        <h3 className="font-bold mt-4 mb-2">Code Verifier:</h3>
-                        <code className="bg-gray-100 p-2 rounded block break-all">
-                            {codeVerifier}
-                        </code>
+                        <div className="mt-4 p-3 bg-yellow-100 rounded">
+                            <h4 className="font-bold text-yellow-800">How it works:</h4>
+                            <ol className="text-sm text-yellow-700 mt-2 space-y-1">
+                                <li>1. Click the authorization URL above</li>
+                                <li>2. Complete the X authorization</li>
+                                <li>3. You'll be automatically redirected back</li>
+                                <li>4. The code verifier is retrieved from cookies automatically</li>
+                                <li>5. You'll get your access token without manual steps!</li>
+                            </ol>
+                        </div>
                     </div>
                 )}
 
                 <button 
-                    onClick={testCallback}
+                    onClick={checkAuthStatus}
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                 >
-                    Test Callback
+                    Check Auth Status
                 </button>
 
                 {result && (
