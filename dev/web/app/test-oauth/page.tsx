@@ -141,7 +141,7 @@ export default function TestOAuth() {
                         <div className="mt-4 p-3 bg-yellow-100 rounded">
                             <h4 className="font-bold text-yellow-800">What happens next:</h4>
                             <ol className="text-sm text-yellow-700 mt-2 space-y-1">
-                                <li>1. Click "Start Authorization" above</li>
+                                <li>1. Click &quot;Start Authorization&quot; above</li>
                                 <li>2. Complete the X authorization in the new window</li>
                                 <li>3. You&apos;ll be redirected to our callback page</li>
                                 <li>4. The callback page will automatically get your access token</li>
