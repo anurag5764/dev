@@ -26,6 +26,10 @@ export default function TestOAuth() {
             console.log('Response data:', data);
             
             if (data.success) {
+                // Store code verifier and state in sessionStorage
+                sessionStorage.setItem('oauth_code_verifier', data.codeVerifier);
+                sessionStorage.setItem('oauth_state', data.state);
+                
                 setAuthUrl(data.authUrl);
                 setResult('✅ OAuth URL generated successfully! Now click the authorization URL below to start the automated flow.');
                 setStep(2);
@@ -49,12 +53,34 @@ export default function TestOAuth() {
             if (data.success) {
                 setResult(`✅ SUCCESS! Access token obtained:\n\n${JSON.stringify(data, null, 2)}`);
                 setStep(3);
+                // Clear session storage
+                sessionStorage.removeItem('oauth_code_verifier');
+                sessionStorage.removeItem('oauth_state');
             } else {
                 setResult(`❌ Authentication failed:\n\n${JSON.stringify(data, null, 2)}`);
             }
         } catch (error) {
             setResult(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+    };
+
+    const handleAuthClick = () => {
+        // Get stored code verifier and state
+        const codeVerifier = sessionStorage.getItem('oauth_code_verifier');
+        const state = sessionStorage.getItem('oauth_state');
+        
+        if (!codeVerifier || !state) {
+            setResult('❌ Error: No OAuth data found. Please generate OAuth URL first.');
+            return;
+        }
+
+        // Create the authorization URL with code verifier and state as parameters
+        const authUrlWithParams = `${authUrl}&code_verifier=${codeVerifier}&state=${state}`;
+        
+        // Open the authorization URL
+        window.open(authUrlWithParams, '_blank');
+        
+        setResult('🔄 Authorization window opened. Complete the authorization and then check the status.');
     };
 
     return (
@@ -93,25 +119,23 @@ export default function TestOAuth() {
                     <div className="border p-4 rounded">
                         <h3 className="font-bold mb-2">Step 2: Authorization URL</h3>
                         <p className="text-sm text-gray-600 mb-4">
-                            Click this URL to start the automated OAuth flow. The code verifier is stored in cookies automatically.
+                            Click the button below to start the automated OAuth flow. The code verifier is stored securely.
                         </p>
-                        <a 
-                            href={authUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline break-all bg-blue-50 p-2 rounded block"
+                        <button 
+                            onClick={handleAuthClick}
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                         >
-                            {authUrl}
-                        </a>
+                            Start Authorization
+                        </button>
                         
                         <div className="mt-4 p-3 bg-yellow-100 rounded">
                             <h4 className="font-bold text-yellow-800">What happens next:</h4>
                             <ol className="text-sm text-yellow-700 mt-2 space-y-1">
-                                <li>1. Click the authorization URL above</li>
-                                <li>2. Complete the X authorization</li>
-                                <li>3. You&apos;ll be automatically redirected back</li>
-                                <li>4. The code verifier is retrieved from cookies automatically</li>
-                                <li>5. You&apos;ll get your access token without manual steps!</li>
+                                <li>1. Click "Start Authorization" above</li>
+                                <li>2. Complete the X authorization in the new window</li>
+                                <li>3. You&apos;ll be redirected back automatically</li>
+                                <li>4. The code verifier is included in the URL automatically</li>
+                                <li>5. Click "Check Auth Status" to get your access token!</li>
                             </ol>
                         </div>
                     </div>

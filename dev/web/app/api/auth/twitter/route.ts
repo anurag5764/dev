@@ -26,36 +26,19 @@ export async function GET() {
 
         const authUrl = `https://x.com/i/oauth2/authorize?${params.toString()}`;
 
-        // Create response with cookies to store the code verifier and state
+        // Create response with the OAuth URL and store code verifier in session storage
         const response = NextResponse.json({
             success: true,
             authUrl: authUrl,
+            codeVerifier: codeVerifier, // Include in response for client-side storage
+            state: state,
             message: 'OAuth URL generated successfully'
         });
 
-        // Set cookies to store the code verifier and state
-        // Use secure: false for development, true for production
-        const isProduction = process.env.NODE_ENV === 'production';
-
-        response.cookies.set('oauth_code_verifier', codeVerifier, {
-            httpOnly: true,
-            secure: isProduction, // Only secure in production
-            sameSite: 'lax',
-            maxAge: 600 // 10 minutes
-        });
-
-        response.cookies.set('oauth_state', state, {
-            httpOnly: true,
-            secure: isProduction, // Only secure in production
-            sameSite: 'lax',
-            maxAge: 600 // 10 minutes
-        });
-
-        console.log('🍪 Cookies set:', {
+        console.log('🔑 OAuth Init:', {
             codeVerifier: codeVerifier ? 'Present' : 'Missing',
             state: state ? 'Present' : 'Missing',
-            isProduction,
-            secure: isProduction
+            authUrl: authUrl.substring(0, 50) + '...'
         });
 
         return response;
