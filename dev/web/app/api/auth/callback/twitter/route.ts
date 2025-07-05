@@ -31,28 +31,53 @@ export async function GET(request: NextRequest) {
         console.log('🔄 Attempting to exchange code for access token...');
         console.log('📝 Using code verifier:', codeVerifier);
 
-        // Manual OAuth token exchange using fetch
-        const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(`${process.env.X_CLIENT_ID}:${process.env.X_CLIENT_SECRET}`).toString('base64')}`
-            },
-            body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: code,
-                redirect_uri: 'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
-                code_verifier: codeVerifier
-            })
-        });
+        // Try different redirect URI formats
+        const redirectUris = [
+            'http://localhost:3000/api/auth/callback/twitter',
+            'http://localhost:3000/auth/callback/twitter',
+            'http://localhost:3000/callback/twitter',
+            'http://localhost:3000'
+        ];
 
-        const tokenData = await tokenResponse.json();
+        let tokenData = null;
+        let lastError = null;
 
-        console.log('📊 Token Response Status:', tokenResponse.status);
-        console.log('📊 Token Response Data:', tokenData);
+        for (const redirectUri of redirectUris) {
+            try {
+                console.log(`🔄 Trying redirect URI: ${redirectUri}`);
 
-        if (!tokenResponse.ok) {
-            throw new Error(`Token exchange failed: ${tokenResponse.status} - ${JSON.stringify(tokenData)}`);
+                const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': `Basic ${Buffer.from(`${process.env.X_CLIENT_ID}:${process.env.X_CLIENT_SECRET}`).toString('base64')}`
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: redirectUri,
+                        code_verifier: codeVerifier
+                    })
+                });
+
+                tokenData = await tokenResponse.json();
+
+                console.log(`📊 Token Response Status: ${tokenResponse.status}`);
+                console.log(`📊 Token Response Data:`, tokenData);
+
+                if (tokenResponse.ok) {
+                    console.log(`✅ Success with redirect URI: ${redirectUri}`);
+                    break;
+                } else {
+                    lastError = `Failed with ${redirectUri}: ${tokenResponse.status} - ${JSON.stringify(tokenData)}`;
+                }
+            } catch (error) {
+                lastError = `Error with ${redirectUri}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            }
+        }
+
+        if (!tokenData || !tokenData.access_token) {
+            throw new Error(`All redirect URIs failed. Last error: ${lastError}`);
         }
 
         console.log('✅ Access Token obtained successfully');
