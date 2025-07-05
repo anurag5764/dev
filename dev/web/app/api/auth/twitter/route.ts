@@ -26,13 +26,39 @@ export async function GET() {
 
         const authUrl = `https://x.com/i/oauth2/authorize?${params.toString()}`;
 
-        return NextResponse.json({
+        // Create response with cookies to store the code verifier and state
+        const response = NextResponse.json({
             success: true,
             authUrl: authUrl,
-            codeVerifier: codeVerifier,
-            state: state,
             message: 'OAuth URL generated successfully'
         });
+
+        // Set cookies to store the code verifier and state
+        // Use secure: false for development, true for production
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        response.cookies.set('oauth_code_verifier', codeVerifier, {
+            httpOnly: true,
+            secure: isProduction, // Only secure in production
+            sameSite: 'lax',
+            maxAge: 600 // 10 minutes
+        });
+
+        response.cookies.set('oauth_state', state, {
+            httpOnly: true,
+            secure: isProduction, // Only secure in production
+            sameSite: 'lax',
+            maxAge: 600 // 10 minutes
+        });
+
+        console.log('🍪 Cookies set:', {
+            codeVerifier: codeVerifier ? 'Present' : 'Missing',
+            state: state ? 'Present' : 'Missing',
+            isProduction,
+            secure: isProduction
+        });
+
+        return response;
     } catch (error) {
         console.error('❌ OAuth Init Error:', error);
         return NextResponse.json({

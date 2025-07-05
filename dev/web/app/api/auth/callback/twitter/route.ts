@@ -83,8 +83,18 @@ export async function GET(request: NextRequest) {
         });
 
         // Clear the OAuth cookies
-        response.cookies.set('oauth_code_verifier', '', { maxAge: 0 });
-        response.cookies.set('oauth_state', '', { maxAge: 0 });
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        response.cookies.set('oauth_code_verifier', '', {
+            maxAge: 0,
+            secure: isProduction,
+            sameSite: 'lax'
+        });
+        response.cookies.set('oauth_state', '', {
+            maxAge: 0,
+            secure: isProduction,
+            sameSite: 'lax'
+        });
 
         return response;
     } catch (error) {
