@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { TwitterApi } from 'twitter-api-v2';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
@@ -9,7 +9,6 @@ export async function GET() {
     try {
         // Generate PKCE challenge
         const codeVerifier = crypto.randomBytes(32).toString('base64url');
-        const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
 
         const client = new TwitterApi({
             clientId: process.env.X_CLIENT_ID!,
