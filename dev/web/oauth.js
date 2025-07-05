@@ -37,7 +37,7 @@ export async function getAccessToken() {
     });
 
     const authLink = await client.generateOAuth2AuthLink(
-      'https://dev-git-master-anurag5764s-projects.vercel.app/api/auth/callback/twitter',
+      'https://bugbuddy-dev.vercel.app/api/auth/callback/twitter',
       { scope: ['tweet.read', 'tweet.write', 'users.read'] },
       { codeChallenge, codeChallengeMethod: 'S256' }
     );
